@@ -65,11 +65,14 @@ public class MinHeap<T extends Comparable<T>> implements PriorityQueue<T> {
         //       use of the MinHeap.
 	    //   
 		Decreaser<T> ans = new Decreaser<T>(thing, this, ++size);
-		//
+		
 		// You have to now put ans into the heap array
 		//   Recall in class we reduced insert to decrease
 		//
-		// FIXME
+		array[size] = ans; 
+		ticker.tick(2);
+		//running decrease to ensure heap property is maintained
+		decrease(size); 
 		//
 		return ans;
 	}
@@ -106,9 +109,29 @@ public class MinHeap<T extends Comparable<T>> implements PriorityQueue<T> {
 	 *     decreased in value
 	 */
 	void decrease(int loc) {
-		//
-		// As described in lecture
-		//
+		
+		ticker.tick();
+		if(loc > 1) {
+			Decreaser<T> child = array[loc];
+			Decreaser<T> parent = array[loc/2];
+			ticker.tick(2);
+			if(child.getValue().compareTo(parent.getValue()) < 0) {
+				swap(loc, loc/2);
+				decrease(loc/2);
+			}
+		}
+		
+	}
+	void swap(int from, int to) {
+		Decreaser<T> child = array[from];
+		Decreaser<T> parent = array[to];
+		//swapping within array
+		array[to] = child;
+		array[from] = parent; 
+		//modifying Decreaser instance variable loc accordingly
+		array[to].loc = to; 
+		array[from].loc = from; 
+		ticker.tick(6);
 		
 	}
 	
@@ -127,7 +150,15 @@ public class MinHeap<T extends Comparable<T>> implements PriorityQueue<T> {
 		//    Be sure to store null in an array slot if it is no longer
 		//      part of the active heap
 		//
-		// FIXME
+		Decreaser<T> lastElement = array[size];
+		//moving lastElement to front to fill gap created by extraction
+		array[1] = lastElement; 
+		array[1].loc = 1; 
+		array[size] = null; 
+		size--; 
+		ticker.tick(5);
+		heapify(1);
+		ticker.tick(); 
 		//
 		return ans;
 	}
@@ -140,10 +171,48 @@ public class MinHeap<T extends Comparable<T>> implements PriorityQueue<T> {
 	 * @param where the index into the array where the parent lives
 	 */
 	private void heapify(int where) {
-		//
-		// As described in lecture
-		//  FIXME
-		//
+		Decreaser<T> parent, rightChild, leftChild; 
+		//evaluating whether element at where has at least one child node
+		if(2*where <= size) {
+			//case 1: parent has two children
+			if(array[2*where+1] != null) {
+				parent = array[where];
+				leftChild = array[2 * where];
+				rightChild = array[2*where + 1];
+				ticker.tick(3);
+				//case i: left child has higher priority than right
+				if(parent.getValue().compareTo(leftChild.getValue()) > 0 || parent.getValue().compareTo(rightChild.getValue()) > 0) { 
+						if(leftChild.getValue().compareTo(rightChild.getValue()) < 0) {
+							swap(2*where, where);
+							//recursive call
+							ticker.tick(2);
+							heapify(2*where);
+							ticker.tick();
+						}
+						//case ii: right child has higher priority
+						else {
+							swap(2*where + 1, where);
+							ticker.tick(2);
+							heapify(2*where +1); 
+							ticker.tick();
+						}
+				}
+			}
+			//case 2: parent has only one child
+			else if(array[2*where] != null) {
+				parent = array[where]; 
+				leftChild = array[2*where];
+				ticker.tick(2);
+				if(parent.getValue().compareTo(leftChild.getValue()) > 0) {
+					swap(2*where,where);
+					ticker.tick();
+					//recursive call
+					heapify(2*where);
+					ticker.tick();
+				}
+			}
+		
+		}
 	}
 	
 	/**
